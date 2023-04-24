@@ -14,69 +14,113 @@ from chempy import balance_stoichiometry
 import math
 from fractions import Fraction
 import csv
+import matplotlib.pyplot as plt
+import nglview
+import numpy as np
+from PIL import ImageTk, Image
+from matplotlib.patches import Rectangle
+from tkinter import ttk
+from tkinter.font import Font
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from pymatgen.core.structure import Structure
+from chempy import balance_stoichiometry
+from IPython.display import Latex
+
 
 class DFTInterface:
     def __init__(self, root):
         # Set window properties
+        # root.title('DFT Interface')
+        # root.geometry('1200x600')
+        # #root.attributes('-fullscreen', True)
+        # root.resizable(0, 0)
+        # root.configure(bg='white')
         root.title('DFT Interface')
-        root.geometry('600x600')
-        root.configure(bg='black')
+        root.configure(bg='white')
+
+        # Get screen width and height
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+
+        # Calculate x and y coordinates for the window
+        x = (screen_width // 2) - (1200 // 2)
+        y = (screen_height // 2) - (600 // 2)
+
+        # Set window position and size
+        root.geometry('1200x600+{}+{}'.format(x, y))
+        root.resizable(0, 0)
+
+
 
         # Add title label
-        title_label = tk.Label(root, text='DFT Interface', font=('Arial', 24), bg='black', fg='white')
-        title_label.pack(pady=20)
+        title_label = tk.Label(root, text='DFT Interface', font=('Kozuka Gothic Pro R', 24), bg='white', fg='black')
+        title_label.place(relx=0.5, rely=0.1, anchor='center')
 
         # Add label for file path
+        # self.filepath_label = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
+        # self.filepath_label.pack(side='top', pady=20)
         self.filepath_label = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
-        self.filepath_label.pack(side='top', pady=20)
+        self.filepath_label.pack(side='bottom', anchor='center',padx=20)
 
         # Add label for Element file path
+        # self.filepath_elem_label = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
+        # self.filepath_elem_label.pack(pady=20)
         self.filepath_elem_label = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
-        self.filepath_elem_label.pack(pady=20)
+        self.filepath_elem_label.pack(side='bottom', pady=20,padx=20)
 
         # Add label for charge potential
-        self.charge = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
-        self.charge.pack(pady=20)
+        # self.charge = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
+        # self.charge.pack(pady=20)
+
+        # Add frame for input fields
+        input_frame = tk.LabelFrame(root, text='Input Parameters', font=('Arial', 16), bg='white', fg='black')
+        input_frame.place(relx=0.3, rely=0.8, anchor='sw', width=500)
+        #input_frame.place(rely=0.3, anchor='center', width=500)
+
+        #THIS IS WHERE IT STOPS
 
         # Add button to select CIF file
-        select_cif_button = tk.Button(root, text='Select Zn CIF file', font=('Arial', 16), bg='white', fg='black', command=self.select_cif)
-        select_cif_button.pack(side='left',pady=20)
+        select_cif_button = tk.Button(input_frame, text='Select Zn + Cathode CIF file', font=('Arial', 12), bg='white', fg='black', command=self.select_cif)
+        #select_cif_button.pack(side='bottom', anchor='center')
+        select_cif_button.grid(row=0, column=0, padx=10, pady=10, sticky='w')
 
         # Add button to select Element CIF file
-        select_elem_button = tk.Button(root, text='Select Element CIF file', font=('Arial', 16), bg='white', fg='black', command=self.select_ele)
-        select_elem_button.pack(side='left',pady=20)
+        select_elem_button = tk.Button(input_frame, text='Select Metal CIF file', font=('Arial', 12), bg='white', fg='black', command=self.select_ele)
+        #select_elem_button.pack(side='bottom',pady=20)
+        select_elem_button.grid(row=0, column=1, padx=10, pady=10, sticky='w')
 
         # Add label for calculation name
-        calc_name_label = tk.Label(root, text='Calculation Name', font=('Arial', 14), bg='black', fg='white')
-        calc_name_label.pack(pady=10)
+        calc_name_label = tk.Label(input_frame, text='Calculation Name:', font=('Arial', 14), bg='white', fg='black')
+        calc_name_label.grid(row=1, column=0, padx=10, pady=10, sticky='w')
 
         # Add entry for calculation name
-        self.calculation_name_entry = tk.Entry(root, font=('Arial', 14), bg='white', fg='black')
-        self.calculation_name_entry.pack(pady=20)
+        self.calculation_name_entry = tk.Entry(input_frame, font=('Arial', 14), bg='white', fg='black')
+        self.calculation_name_entry.grid(row=1, column=1, padx=10, pady=10)
 
         # Add label for valence charge
-        valence_label = tk.Label(root, text='Valence Charge', font=('Arial', 14), bg='black', fg='white')
-        valence_label.pack(pady=10)
+        valence_label = tk.Label(input_frame, text='Valence Charge:', font=('Arial', 14), bg='white', fg='black')
+        valence_label.grid(row=2, column=0, padx=10, pady=10, sticky='w')
 
         # Add entry for valence charge
-        self.valence_entry = tk.Entry(root, font=('Arial', 14), bg='white', fg='black')
-        self.valence_entry.pack(pady=20)
+        self.valence_entry = tk.Entry(input_frame, font=('Arial', 14), bg='white', fg='black')
+        self.valence_entry.grid(row=2, column=1, padx=10, pady=10)
 
         # Add label for email name
-        email_name_label = tk.Label(root, text='Email', font=('Arial', 14), bg='black', fg='white')
-        email_name_label.pack(pady=10)
+        email_name_label = tk.Label(input_frame, text='Email:', font=('Arial', 14), bg='white', fg='black')
+        email_name_label.grid(row=3, column=0, padx=10, pady=10, sticky='w')
 
         # Add entry for email
-        self.email = tk.Entry(root, font=('Arial', 14), bg='white', fg='black')
-        self.email.pack(pady=20)
+        self.email = tk.Entry(input_frame, font=('Arial', 14), bg='white', fg='black')
+        self.email.grid(row=3, column=1, padx=10, pady=10)    
 
         # Add button to submit calculation
-        self.submit_button = tk.Button(root, text='Submit Calculation', font=('Arial', 16), bg='white', fg='black', command=self.submit_calculation)
-        self.submit_button.pack(pady=20)
+        self.submit_button = tk.Button(input_frame, text='Submit Calculation', font=('Arial', 16), bg='white', fg='black', command=self.submit_calculation)
+        self.submit_button.grid(row=4, column=1, padx=10, pady=10) 
 
         # Add button to view calculation results
-        self.view_results_button = tk.Button(root, text='View Calculation Results', font=('Arial', 16), bg='white', fg='black', command=self.view_results)
-        self.view_results_button.pack(pady=20)
+        self.view_results_button = tk.Button(input_frame, text='View Calculation Results', font=('Arial', 16), bg='white', fg='black', command=self.view_results)
+        self.view_results_button.grid(row=5, column=1, padx=10, pady=10) 
 
     def select_cif(self):
         # Prompt user to select CIF file
@@ -191,20 +235,20 @@ class DFTInterface:
                 else:
                     os.system(f'/home/group5/scratch/mod_incar2.sh /home/group5/scratch/{calculation_name}/Element/{incar_file} /home/group5/scratch/{calculation_name}/Element/POSCAR')                  
 
-                # # specify the Bash commands to run with Zn calculation
-                # bash_commands = "cd /home/group5/scratch/{}/withZinc;sbatch sub_vasp_std.sh".format(calculation_name)
-                # # run the Bash commands
-                # subprocess.run(["bash", "-c", bash_commands])
+                # specify the Bash commands to run with Zn calculation
+                bash_commands = "cd /home/group5/scratch/{}/withZinc;sbatch sub_vasp_std.sh".format(calculation_name)
+                # run the Bash commands
+                subprocess.run(["bash", "-c", bash_commands])
 
-                # # specify the Bash commands to run with no Zn calculation
-                # bash_commands = "cd /home/group5/scratch/{}/noZinc;sbatch sub_vasp_std.sh".format(calculation_name)
-                # # run the Bash commands
-                # subprocess.run(["bash", "-c", bash_commands])
+                # specify the Bash commands to run with no Zn calculation
+                bash_commands = "cd /home/group5/scratch/{}/noZinc;sbatch sub_vasp_std.sh".format(calculation_name)
+                # run the Bash commands
+                subprocess.run(["bash", "-c", bash_commands])
 
-                # # specify the Bash commands to run with Element
-                # bash_commands = "cd /home/group5/scratch/{}/Element;sbatch sub_vasp_std.sh".format(calculation_name)
-                # # run the Bash commands
-                # subprocess.run(["bash", "-c", bash_commands])
+                # specify the Bash commands to run with Element
+                bash_commands = "cd /home/group5/scratch/{}/Element;sbatch sub_vasp_std.sh".format(calculation_name)
+                # run the Bash commands
+                subprocess.run(["bash", "-c", bash_commands])
 
             # Print message confirming submission
             #Before showing Submitted!, make it just if sbatch was run
@@ -346,6 +390,130 @@ class DFTInterface:
 
         return elem_norm, oxygen_coeff, metal_oxide_coeff
 
+    def plot_graph(self,E, H_ions_num,electrons_num, charge_pot_norm, e_stab):
+        # Generate some sample data
+        x = np.linspace(0, 8, 100)
+        y1 = 1.229 - 0.059 * x
+        y2 = -0.059 * x
+
+        y3 = E-(H_ions_num *0.059/electrons_num)*x
+        y4 = np.full_like(x, charge_pot_norm) 
+
+        # Create a figure and add a subplot
+        #fig = Figure(figsize=(8,4), dpi=100)
+        fig = Figure(figsize=(7.4,4.3), dpi=100)
+        ax = fig.add_subplot(111)
+
+        ax.plot(x, y1, color='yellow', label='Oxygen Evolution Reaction')
+        ax.plot(x, y2, color='blue', label='Hydrogen Evolution Reaction')
+        ax.plot(x, y4, color='purple', label='Normalized Charge Potential')
+        ax.plot(x, y3, color='black', label='Electro-chemical Stability')
+
+        if -0.295 < e_stab < 0.934:
+            # Add the data to the plot
+            # Fill area between y1 and y3 with green
+            ax.fill_between(x, y1, y3, where=(y1 > y2), color='green', alpha=0.5)
+
+            # Fill area above y1 with red
+            ax.fill_between(x, y1, 1.5, where=(y3 < 1.5), color='red', alpha=0.5)
+
+            # Fill area below y3 with green
+            ax.fill_between(x, y3, -1, where=(y3 > -1), color='red', alpha=0.5)
+
+        else:
+            # Add the data to the plot
+            # Fill area between y1 and y3 with green
+            ax.fill_between(x, y1, y2, where=(y1 > y2), color='green', alpha=0.5)
+
+            # Fill area above y1 with red
+            ax.fill_between(x, y1, 1.5, where=(y3 < 1.5), color='red', alpha=0.5)
+
+            # Fill area below y3 with green
+            ax.fill_between(x, y2, -1, where=(y2 > -1), color='red', alpha=0.5)    
+
+        # # compute angle in raw data coordinates (no manual transforms)
+        # dy = y1[1] - y1[0]
+        # dx = x[1] - x[0]
+        # angle = np.rad2deg(np.arctan2(dy, dx))
+
+        # # Find the index of the element in `x` closest to 2
+        # idx = np.abs(x - 8).argmin()
+
+        # # Get the value of `y` at that index
+        # y_1 = y1[idx]
+
+        # # annotate with transform_rotates_text to align text and line
+        # ax.text(4.5, y_1+0.2, 'Oxy Rev Rxn', ha='left', va='bottom',
+        #         transform_rotates_text=True, rotation=angle, rotation_mode='anchor')
+
+
+        # # compute angle in raw data coordinates (no manual transforms)
+        # dy2 = y2[1] - y2[0]
+        # angle2 = np.rad2deg(np.arctan2(dy2, dx))
+
+        # # Get the value of `y` at that index
+        # y_2= y2[idx]
+
+        # # annotate with transform_rotates_text to align text and line
+        # ax.text(6.2, y_2+0.1, 'Hydrogen Rev Rxn', ha='left', va='bottom',
+        #         transform_rotates_text=True, rotation=angle2, rotation_mode='anchor')
+
+
+        # # compute angle in raw data coordinates (no manual transforms)
+        # dy3 = y3[1] - y3[0]
+        # angle3 = np.rad2deg(np.arctan2(dy3, dx))
+
+        # # Get the value of `y` at that index
+        # y_3 = y3[idx]
+
+        # # annotate with transform_rotates_text to align text and line
+        # ax.text(6, y_3+0.25, 'Electro-Chem Stablty', ha='left', va='bottom',
+        #         transform_rotates_text=True, rotation=angle3, rotation_mode='anchor')
+
+        # Set the x and y axis labels and title
+        ax.set_xlabel('pH')
+        ax.set_ylabel('V (SHE)')
+        #ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1))
+
+        # Adjust the size of the plot
+        #ax.set_position([0.12, 0.35, 0.6, 0.6])  # [left, bottom, width, height]
+        ax.set_position([0.12, 0.1, 0.6, 0.8])  # [left, bottom, width, height]
+        ax.set_xlim([0.5, 3.5])
+        ax.set_ylim([0, 20])
+
+        # Add a legend and adjust its size
+        ax.legend(loc='upper left',bbox_to_anchor=(1, 1), prop={'size': 8.2})
+        #ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), prop={'size': 10}, ncol=2, fancybox=True, shadow=True, borderaxespad=0)
+
+        # Set the x axis limits
+        ax.set_xlim([2, 8])
+
+        # Set the x axis limits
+        ax.set_ylim([-1, 1.5])
+
+        # Create the yellow rectangle patch
+        rect = Rectangle((4, charge_pot_norm - 0.5), 2, 1, color='yellow', alpha=0.2, linewidth=2, capstyle='round', joinstyle='round')
+        ax.add_patch(rect)
+        ax.text(5, charge_pot_norm - 0.6, "ZIB Operation Range", ha='center', fontsize=10)
+
+        # Convert the plot to an image
+        canvas = plt.get_current_fig_manager().canvas
+        canvas.draw()
+        plot_image = ImageTk.PhotoImage(Image.frombytes("RGB", canvas.get_width_height(), canvas.tostring_rgb()))   
+
+
+        # return plot_image     
+        return fig
+
+    # Define a function to convert chemical formulas to LaTeX format
+    def convert_formula(self, formula):
+        # Use regular expressions to find groups of letters followed by numbers
+        pattern = re.compile(r'([A-Za-z]+)(\d+)')
+        # Replace each group with the same group with an underscore in between
+        return pattern.sub(r'\1_\2', formula)
+
+
+
     def view_results(self):
         # Prompt user to select folder
         folderpath = filedialog.askdirectory(initialdir=os.getcwd(), title='Select folder')
@@ -353,12 +521,9 @@ class DFTInterface:
             # Create new window for results
             results_window = tk.Toplevel()
             results_window.title('Calculation')
-            results_window.geometry('600x600')
-            results_window.configure(bg='black')
-
-            # Add home button
-            home_button = tk.Button(results_window, text='Home', font=('Arial', 16), bg='white', fg='black', command=results_window.destroy)
-            home_button.pack(side='left', padx=20, pady=20)
+            results_window.geometry('1380x600')
+            #results_window.resizable(0, 0)
+            results_window.configure(bg='white')
 
             # Get values from POSCAR file with Zn
             withZn_poscar_path = os.path.join(folderpath,"withZinc","POSCAR")
@@ -387,7 +552,6 @@ class DFTInterface:
             Elem_slurmpath = os.path.join(folderpath,"Element", Elem_slurm_path)
             EO_Elem = self.get_E0(Elem_slurmpath)
 
-
             #Charge Potentail
             E0_Zn_norm = -2.8920807 / 2
             E0_withZn_norm = float(EO_withZn) / float(withZn_fu)
@@ -396,43 +560,14 @@ class DFTInterface:
             E0_rxn_norm = float(E0_Zn_norm) + (float(ratio)*float(E0_noZn_norm))
             charge_pot = (float(E0_rxn_norm) - float(E0_withZn_norm)) / 2
 
-            # Add table
-            # Create a Pandas dataframe with the variables
-            df = pd.DataFrame({
-                'ZnMoO3': EO_withZn,
-                'fu ZnMoO3': withZn_fu,
-                'MoO3': EO_noZn,
-                'fu MoO3': noZn_fu,
-                'ZnMoO3 norm': E0_withZn_norm,
-                'MoO3 norm': E0_noZn_norm,
-                'Rxn': E0_rxn_norm,
-                'ratio': ratio
-            }, index=pd.RangeIndex(4))
+            cp = round(charge_pot, 2)
 
-            # Create label for the table
-            table_label = tk.Label(results_window, text='Calculation Results', font=('Arial', 16), bg='black', fg='white')
-            table_label.pack(pady=20)
+            # # Add frame for input fields
+            # c_frame = tk.LabelFrame(results_window, text='Calculations', font=('Arial', 16), bg='white', fg='black')
+            # c_frame.place(relx=0.5, rely=0.5, anchor='center', width=500)
 
-            # Create a Pandas dataframe widget
-            df_widget = tk.Frame(results_window, bg='white')
-            df_widget.pack()
-
-            # Create a scrollbar for the dataframe widget
-            scrollbar = tk.Scrollbar(df_widget)
-            scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-            # Create the table using the dataframe widget
-            table = tk.Text(df_widget, wrap=tk.NONE, bg='white', yscrollcommand=scrollbar.set)
-            table.pack()
-
-            # Add the data to the table
-            table.insert(tk.END, df.to_string(index=False))
-
-            # Configure the scrollbar to work with the table
-            scrollbar.config(command=table.yview)
-
-            total_label = tk.Label(results_window, text=f"Total Charge Pot: {charge_pot}", font=("Helvetica", 10, "bold"), bg='black', fg='white')
-            total_label.pack(pady=10)
+            # total_label = tk.Label(c_frame, text=f"Charge Potential = {cp} V vs Zn2+/Zn", font=("Helvetica", 20, "bold"), bg='black', fg='white')
+            # total_label.pack(padx=10, pady=10)
 
             if charge_pot > 0: 
                 #CHEMICAL POTENTIAL
@@ -493,32 +628,169 @@ class DFTInterface:
 
                 E = - (G_rxn / electrons_num)
                 e_pH5 = E - ( (0.059* H_ions_num) / electrons_num ) * pH
-
+                e_pH5 = round(e_pH5,2)
                 charge_pot_norm = charge_pot - 0.762
+                cp2 = round(charge_pot_norm,2)
+
+                # Set up needed components, then plot graph afterwards
+
+                # Define a new font for ttk widgets
+                my_font = Font(
+                    family = 'Waree',
+                    size = 30,
+                    weight = 'bold',
+                    slant = 'roman',
+                    underline = 1,
+                    overstrike = 0
+                )
+
+                # Create a title label with custom font
+
+                # Load the structure from the POSCAR file for zinc cathode compound
+                struc_metal_ox = Structure.from_file(noZn_poscar_path)
+
+                # Get the formula of the structure
+                formula_metal_ox = Composition(struc_metal_ox.formula)
+
+                # Balance the formula
+                balanced_form_metox = formula_metal_ox.reduced_formula
+
+                # Load the structure from the POSCAR file for zinc cathode compound
+                struc_withZinc = Structure.from_file(withZn_poscar_path)
+
+                # Get the formula of the structure
+                formula_withZinc = Composition(struc_withZinc.formula)
+
+                # Balance the formula
+                balanced_form_withZinc = formula_withZinc.reduced_formula
+
+                title_label = tk.Label(results_window, text=balanced_form_metox, font=my_font, bg = "white")
+                title_label.grid(row=0, column=0, sticky='nw', padx=20, pady=20)
+
+                plot_label = tk.Frame(results_window)
+                plot_label.grid(row=1, column=0, sticky='nw', padx=20, pady=10)
+                
+                fig = self.plot_graph(E, H_ions_num, electrons_num, cp2, e_pH5)
+
+                # Convert the plot to an image
+                canvas = FigureCanvasTkAgg(fig, master=plot_label)
+                canvas.draw()
+                plot_image = ImageTk.PhotoImage(Image.frombytes("RGB", canvas.get_width_height(), canvas.tostring_rgb()))
+
+                # Create a label to display the plot image
+                plot_image_label = tk.Label(plot_label, image=plot_image)
+                plot_image_label.image = plot_image
+                #plot_image_label.pack()
+                plot_image_label.grid(row=1, column=0, sticky='w')
+
+                #Chemical Equation
+                structure_ = Structure.from_file(Elem_poscar_path)
+                # Get the element symbols as a list of strings
+                elements = structure_.symbol_set
+                # Convert the list to a single string
+                metal = ''.join(elements)
+                # conv_metox = self.convert_formula(balanced_form_metox)
+                # #reactants = fr"\mathrm{{{conv_metox} + {H_ions_num}H^{+} + {electrons_num}e^{-}}}"
+                # arrow = r"\xrightarrow{\hspace{0.5cm}}\hspace{0.5cm}\xleftarrow{\hspace{0.5cm}}"
+                # #prods = fr"\mathrm{{{metal}^{{valence_charge}}_{(aq)} + {H2O_coeff}H_2O}}"
+                # latex_text = Latex(f"${reactants} + {manganese} {arrow} {prods}$")
+                # fig = Figure(figsize=(5, 4), dpi=100)
+                # ax = fig.add_subplot(111)
+                # ax.axis('off')
+                # ax.text(0.5, 0.5, latex_text.data, fontsize=20, ha='center', va='center')
+                # # Create a canvas to display the figure in the tkinter window
+                # canvas = FigureCanvasTkAgg(fig, master=root)
+                # canvas.draw()
+                # plot_eq = ImageTk.PhotoImage(Image.frombytes("RGB", canvas.get_width_height(), canvas.tostring_rgb()))
+                # # Create a label to display the plot image
+                # plot_eq_label = tk.Label(plot_label, image=plot_eq)
+                # #plot_image_label.pack()
+                # plot_eq_label.grid(row=0, column=0, sticky='w')
+
+                # Create a table with sample data
+                table_frame = tk.Frame(results_window)
+                table_frame.grid(row=1, column=1, sticky='nsew', padx=20, pady=10)
+                table = ttk.Treeview(table_frame, columns=(1, 2, 3, 4), show="headings", height=4)
+                table.grid(row=0, column=0, sticky='nw', padx=10, pady=10)
+
+                table.column(1, width=130, anchor='center')
+                table.column(2, width=110, anchor='center')
+                table.column(3, width=150, anchor='center')
+                table.column(4, width=150, anchor='center')
+
+                font2 = Font(
+                    family = 'Arial',
+                    size = 15,
+                    slant = 'roman',
+                    overstrike = 0
+                )
+
+                # Set a new font for the table
+                table_style = ttk.Style()
+                table_style.configure("Custom.Treeview.Heading", font=("TkDefaultFont", 12, "bold"))
+                table_style.configure("Custom.Treeview", font=font2)
+
+                table.heading(1, text="Element")
+                table.heading(2, text="E0 (eV)")
+                table.heading(3, text="Number of Atoms")
+                table.heading(4, text="E0 (eV/Formula Units)")
+
+                table.insert("", tk.END, values=("Zn", -2.89, 2, -1.45), tags=('center'))
+                table.insert("", tk.END, values=(balanced_form_metox, round(EO_noZn,2), noZn_fu, round(E0_noZn_norm,2)), tags=('center'))
+                table.insert("", tk.END, values=(balanced_form_withZinc, round(EO_withZn,2), withZn_fu,round(E0_withZn_norm,2)), tags=('center'))
+                table.insert("", tk.END, values=(f"Zn + {balanced_form_metox}","","", round(E0_rxn_norm,2)), tags=('center'))
 
                 if -0.295 < charge_pot_norm < 0.934:
                     if charge_pot_norm > e_pH5:
-                        label14 = tk.Label(results_window, text=f"Material Works!, Charge Pot norm ({charge_pot_norm}) is higher than Electro-chem Stab ({e_pH5})", font=("Helvetica", 10, "bold"), bg='black', fg='white')
-                        label14.pack(pady=20)  
+                        message = f"{balanced_form_metox} is a suitable cathode for an aqueous zinc-ion battery as its charge potential SHE ({cp2} V) is higher than its electro-chem stability ({e_pH5} V SHE) at a pH of 5"
+
                     else:
-                        label15 = tk.Label(results_window, text=f"Material Doesn't Work!, e_pH5 ({e_pH5}) is higher than Charge Potential", font=("Helvetica", 10, "bold"), bg='black', fg='white')
-                        label15.pack(pady=20) 
+                        message = f"{balanced_form_metox} is not a suitable cathode for an aqueous zinc-ion battery as its electro-chem stability ({e_pH5} V SHE) at a pH of 5, is higher than its normalized charge potential ({cp2} V vs Zn²⁺/Zn)"
 
                 else:
-                    label13 = tk.Label(results_window, text=f"Material doesn't work with evolutions: Normalized Charge Pot ({charge_pot_norm}) is not between evolutions, G rxn = {G_rxn}, H rxn = {H_rxn}", font=("Helvetica", 10, "bold"), bg='black', fg='white')
-                    label13.pack(pady=20)                    
+                    message = f"{balanced_form_metox} is not a suitable cathode for an aqueous zinc-ion battery as its charge potential ({cp2} V vs Zn²⁺/Zn) is not between the oxygen and hydrogen evolutions"           
+
+                mat_prop_frame = tk.Frame(table_frame, bg="white", bd=2, relief=tk.RAISED)
+                mat_prop_frame.grid(row=1, column=0, padx=20, pady=10, sticky='w')
+
+                # Charge potential label and value
+                charge_label = tk.Label(mat_prop_frame, text="Charge Potential (Zn²⁺/Zn)", font=('Arial', 12),bg='white')
+                charge_label.grid(row=1, column=0, padx=10, pady=5, sticky='w')
+                charge_value = tk.Label(mat_prop_frame, text=f"{cp} V", font=('Arial', 12, 'bold'), fg='blue',bg='white')
+                charge_value.grid(row=1, column=1, padx=10, pady=5, sticky='w')
+
+                # Normalized Charge potential label and value
+                ncharge_label = tk.Label(mat_prop_frame, text="Charge Potential (SHE)", font=('Arial', 12),bg='white')
+                ncharge_label.grid(row=2, column=0, padx=10, pady=5, sticky='w')
+                ncharge_value = tk.Label(mat_prop_frame, text=f"{cp2} V", font=('Arial', 12, 'bold'), fg='blue',bg='white')
+                ncharge_value.grid(row=2, column=1, padx=10, pady=5, sticky='w')
+
+                # Electro-chemical stability label and value
+                ecs_label = tk.Label(mat_prop_frame, text="Electro-Chemical Stability (at pH = 5)", font=('Arial', 12),bg='white')
+                ecs_label.grid(row=3, column=0, padx=10, pady=5, sticky='w')
+                ecs_value = tk.Label(mat_prop_frame, text=f"{e_pH5} V SHE", font=('Arial', 12, 'bold'), fg='blue',bg='white')
+                ecs_value.grid(row=3, column=1, padx=10, pady=5, sticky='w')
+
+                # Reaction label and value
+                rxn_label = tk.Label(mat_prop_frame, text=f"{balanced_form_metox} + {int(H_ions_num)}H⁺ + {int(electrons_num)}e⁻ ↔ {metal}{valence_charge}+(aq) + {int(H2O_coeff)}H₂O", font=('Arial', 12, 'italic', 'bold'),bg='white')
+                rxn_label.grid(row=5, column=0, padx=10, pady=5, sticky='nswe')
+
+                # Delta G of reaction label and value
+                deltaG_label = tk.Label(mat_prop_frame, text="ΔGrxn", font=('Arial', 12),bg='white')
+                deltaG_label.grid(row=6, column=0, padx=10, pady=5, sticky='w')
+                deltaG_value = tk.Label(mat_prop_frame, text=f"{round(G_rxn,2)} eV", font=('Arial', 12, 'bold'), fg='blue',bg='white')
+                deltaG_value.grid(row=6, column=1, padx=10, pady=5, sticky='w')
+
+                #Recommendation frame
+                rec_frame = tk.LabelFrame(table_frame, text='Recommendation',font=('Arial', 16))
+                rec_frame.grid(row=2, column=0, padx=20, pady=10, sticky='w')
+
+                rec_text = tk.Label(rec_frame, text=message, font=('Arial', 12), wraplength=500)
+                rec_text.grid(row=0, column=0, padx=10, pady=5, sticky='w')
 
             else:
-                label12 = tk.Label(results_window, text=f"Charge potential is negative: {charge_pot}, therefore it doesn't work", font=("Helvetica", 10, "bold"), bg='black', fg='white')
-                label12.pack(pady=20)
+                message = f"The charge potential is negative: {cp} V vs Zn²⁺/Zn, therefore it is not suitable for an aqueous zinc-ion batter"
 
-
-
-            # # Create table with pandas
-            # data = {'Values': [val1, val2]}
-            # df = pd.DataFrame(data)
-            # table = tk.Label(results_window, text=df.to_string(index=False), font=('Arial', 14))
-            # table.pack(pady=20)
 
         else:
             print("No folder")
@@ -527,3 +799,4 @@ class DFTInterface:
 root = tk.Tk()
 app = DFTInterface(root)
 root.mainloop()
+
