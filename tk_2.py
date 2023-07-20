@@ -3,7 +3,6 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog
 from pymatgen.core.structure import Structure
-#from pymatgen.core.formula_composition import Composition
 from pymatgen.core.composition import Composition
 from pymatgen.io.cif import CifParser, CifBlock
 import shutil
@@ -31,11 +30,6 @@ from IPython.display import Latex
 class DFTInterface:
     def __init__(self, root):
         # Set window properties
-        # root.title('DFT Interface')
-        # root.geometry('1200x600')
-        # #root.attributes('-fullscreen', True)
-        # root.resizable(0, 0)
-        # root.configure(bg='white')
         root.title('DFT Interface')
         root.configure(bg='white')
 
@@ -58,20 +52,12 @@ class DFTInterface:
         title_label.place(relx=0.5, rely=0.1, anchor='center')
 
         # Add label for file path
-        # self.filepath_label = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
-        # self.filepath_label.pack(side='top', pady=20)
         self.filepath_label = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
         self.filepath_label.pack(side='bottom', anchor='center',padx=20)
 
         # Add label for Element file path
-        # self.filepath_elem_label = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
-        # self.filepath_elem_label.pack(pady=20)
         self.filepath_elem_label = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
         self.filepath_elem_label.pack(side='bottom', pady=20,padx=20)
-
-        # Add label for charge potential
-        # self.charge = tk.Label(root, text='', font=('Arial', 14), bg='black', fg='white')
-        # self.charge.pack(pady=20)
 
         # Add frame for input fields
         input_frame = tk.LabelFrame(root, text='Input Parameters', font=('Arial', 16), bg='white', fg='black')
@@ -82,12 +68,10 @@ class DFTInterface:
 
         # Add button to select CIF file
         select_cif_button = tk.Button(input_frame, text='Select Zn + Cathode CIF file', font=('Arial', 12), bg='white', fg='black', command=self.select_cif)
-        #select_cif_button.pack(side='bottom', anchor='center')
         select_cif_button.grid(row=0, column=0, padx=10, pady=10, sticky='w')
 
         # Add button to select Element CIF file
         select_elem_button = tk.Button(input_frame, text='Select Metal CIF file', font=('Arial', 12), bg='white', fg='black', command=self.select_ele)
-        #select_elem_button.pack(side='bottom',pady=20)
         select_elem_button.grid(row=0, column=1, padx=10, pady=10, sticky='w')
 
         # Add label for calculation name
@@ -199,10 +183,6 @@ class DFTInterface:
                 src = os.path.join(input_files_dir, incar_file)
                 dst = os.path.join(f'/home/group5/scratch/{calculation_name}', incar_file)
                 shutil.copy2(src, dst)
-
-            #Modify INCAR-1 and INCAR-2 
-            # os.system(f'/home/group5/scratch/process.sh /home/group5/scratch/{calculation_name}/INCAR-1')
-            # os.system(f'/home/group5/scratch/process.sh /home/group5/scratch/{calculation_name}/INCAR-2')
 
             input_files_dir = os.path.join(os.getcwd(), f'/home/group5/scratch/{calculation_name}')
             for incar_file in ['INCAR-1', 'INCAR-2', 'sub_vasp_std.sh']:
@@ -400,7 +380,6 @@ class DFTInterface:
         y4 = np.full_like(x, charge_pot_norm) 
 
         # Create a figure and add a subplot
-        #fig = Figure(figsize=(8,4), dpi=100)
         fig = Figure(figsize=(7.4,4.3), dpi=100)
         ax = fig.add_subplot(111)
 
@@ -410,7 +389,6 @@ class DFTInterface:
         ax.plot(x, y3, color='black', label='Electro-chemical Stability')
 
         if -0.295 < e_stab < 0.934:
-            # Add the data to the plot
             # Fill area between y1 and y3 with green
             ax.fill_between(x, y1, y3, where=(y1 > y2), color='green', alpha=0.5)
 
@@ -421,7 +399,6 @@ class DFTInterface:
             ax.fill_between(x, y3, -1, where=(y3 > -1), color='red', alpha=0.5)
 
         else:
-            # Add the data to the plot
             # Fill area between y1 and y3 with green
             ax.fill_between(x, y1, y2, where=(y1 > y2), color='green', alpha=0.5)
 
@@ -431,59 +408,18 @@ class DFTInterface:
             # Fill area below y3 with green
             ax.fill_between(x, y2, -1, where=(y2 > -1), color='red', alpha=0.5)    
 
-        # # compute angle in raw data coordinates (no manual transforms)
-        # dy = y1[1] - y1[0]
-        # dx = x[1] - x[0]
-        # angle = np.rad2deg(np.arctan2(dy, dx))
-
-        # # Find the index of the element in `x` closest to 2
-        # idx = np.abs(x - 8).argmin()
-
-        # # Get the value of `y` at that index
-        # y_1 = y1[idx]
-
-        # # annotate with transform_rotates_text to align text and line
-        # ax.text(4.5, y_1+0.2, 'Oxy Rev Rxn', ha='left', va='bottom',
-        #         transform_rotates_text=True, rotation=angle, rotation_mode='anchor')
-
-
-        # # compute angle in raw data coordinates (no manual transforms)
-        # dy2 = y2[1] - y2[0]
-        # angle2 = np.rad2deg(np.arctan2(dy2, dx))
-
-        # # Get the value of `y` at that index
-        # y_2= y2[idx]
-
-        # # annotate with transform_rotates_text to align text and line
-        # ax.text(6.2, y_2+0.1, 'Hydrogen Rev Rxn', ha='left', va='bottom',
-        #         transform_rotates_text=True, rotation=angle2, rotation_mode='anchor')
-
-
-        # # compute angle in raw data coordinates (no manual transforms)
-        # dy3 = y3[1] - y3[0]
-        # angle3 = np.rad2deg(np.arctan2(dy3, dx))
-
-        # # Get the value of `y` at that index
-        # y_3 = y3[idx]
-
-        # # annotate with transform_rotates_text to align text and line
-        # ax.text(6, y_3+0.25, 'Electro-Chem Stablty', ha='left', va='bottom',
-        #         transform_rotates_text=True, rotation=angle3, rotation_mode='anchor')
-
         # Set the x and y axis labels and title
         ax.set_xlabel('pH')
         ax.set_ylabel('V (SHE)')
         #ax.legend(loc='upper right', bbox_to_anchor=(1.2, 1))
 
         # Adjust the size of the plot
-        #ax.set_position([0.12, 0.35, 0.6, 0.6])  # [left, bottom, width, height]
         ax.set_position([0.12, 0.1, 0.6, 0.8])  # [left, bottom, width, height]
         ax.set_xlim([0.5, 3.5])
         ax.set_ylim([0, 20])
 
         # Add a legend and adjust its size
         ax.legend(loc='upper left',bbox_to_anchor=(1, 1), prop={'size': 8.2})
-        #ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1), prop={'size': 10}, ncol=2, fancybox=True, shadow=True, borderaxespad=0)
 
         # Set the x axis limits
         ax.set_xlim([2, 8])
@@ -522,7 +458,6 @@ class DFTInterface:
             results_window = tk.Toplevel()
             results_window.title('Calculation')
             results_window.geometry('1380x600')
-            #results_window.resizable(0, 0)
             results_window.configure(bg='white')
 
             # Get values from POSCAR file with Zn
@@ -561,13 +496,6 @@ class DFTInterface:
             charge_pot = (float(E0_rxn_norm) - float(E0_withZn_norm)) / 2
 
             cp = round(charge_pot, 2)
-
-            # # Add frame for input fields
-            # c_frame = tk.LabelFrame(results_window, text='Calculations', font=('Arial', 16), bg='white', fg='black')
-            # c_frame.place(relx=0.5, rely=0.5, anchor='center', width=500)
-
-            # total_label = tk.Label(c_frame, text=f"Charge Potential = {cp} V vs Zn2+/Zn", font=("Helvetica", 20, "bold"), bg='black', fg='white')
-            # total_label.pack(padx=10, pady=10)
 
             if charge_pot > 0: 
                 #CHEMICAL POTENTIAL
@@ -680,7 +608,6 @@ class DFTInterface:
                 # Create a label to display the plot image
                 plot_image_label = tk.Label(plot_label, image=plot_image)
                 plot_image_label.image = plot_image
-                #plot_image_label.pack()
                 plot_image_label.grid(row=1, column=0, sticky='w')
 
                 #Chemical Equation
@@ -689,23 +616,6 @@ class DFTInterface:
                 elements = structure_.symbol_set
                 # Convert the list to a single string
                 metal = ''.join(elements)
-                # conv_metox = self.convert_formula(balanced_form_metox)
-                # #reactants = fr"\mathrm{{{conv_metox} + {H_ions_num}H^{+} + {electrons_num}e^{-}}}"
-                # arrow = r"\xrightarrow{\hspace{0.5cm}}\hspace{0.5cm}\xleftarrow{\hspace{0.5cm}}"
-                # #prods = fr"\mathrm{{{metal}^{{valence_charge}}_{(aq)} + {H2O_coeff}H_2O}}"
-                # latex_text = Latex(f"${reactants} + {manganese} {arrow} {prods}$")
-                # fig = Figure(figsize=(5, 4), dpi=100)
-                # ax = fig.add_subplot(111)
-                # ax.axis('off')
-                # ax.text(0.5, 0.5, latex_text.data, fontsize=20, ha='center', va='center')
-                # # Create a canvas to display the figure in the tkinter window
-                # canvas = FigureCanvasTkAgg(fig, master=root)
-                # canvas.draw()
-                # plot_eq = ImageTk.PhotoImage(Image.frombytes("RGB", canvas.get_width_height(), canvas.tostring_rgb()))
-                # # Create a label to display the plot image
-                # plot_eq_label = tk.Label(plot_label, image=plot_eq)
-                # #plot_image_label.pack()
-                # plot_eq_label.grid(row=0, column=0, sticky='w')
 
                 # Create a table with sample data
                 table_frame = tk.Frame(results_window)
